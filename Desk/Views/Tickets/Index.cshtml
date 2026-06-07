@@ -1,0 +1,228 @@
+﻿@using Desk.Constants
+
+@inject Desk.Contracts.Services.IUserService UserService
+
+@model IEnumerable<Desk.Models.Ticket>
+
+@{
+
+	ViewData["Title"] = "Jegyeim";
+
+	// The page reloads automatically after 10 minutes
+	<meta http-equiv="refresh" content="600">
+
+	// string ticketDesign = "";
+}
+
+
+
+@section Sidebar {
+	<div class="">
+	</div>
+
+}
+
+@section Header {
+	@if (Model.Count() > 0)
+	{
+		<div class="fw-light ps-3 pe-3 pt-1 pb-1 row text-wrap border border-start">@* border-bottom border-2 *@
+			<div class="col pt-2 pb-2">
+				Hivatkozási szám
+			</div>
+			<div class="col">
+				@* <label class="form-label">@Html.DisplayNameFor(model => model.Categorization)</label> *@
+				<select id="categorizationFilter" class="fw-light filter pt-2 pb-2">
+					<option value="">@Html.DisplayNameFor(model => model.Categorization)</option>
+					@foreach (var c in Model.Select(m => m.Categorization).Distinct())
+					{
+						<option value="@c" class="fw-light">
+							@Helper.FormatCategoryShort(c!)
+							@* (@Model.Count(m => m.Categorization == c)) *@
+						</option>
+					}
+				</select>
+			</div>
+			<div class="col">
+				<select id="reportedByFilter" class="fw-light filter pt-2 pb-2">
+					<option value="">@Html.DisplayNameFor(model => model.ReportedBy)</option>
+					@foreach (var r in Model.Select(m => m.ReportedBy).Distinct())
+					{
+						<option value="@r!.Id" class="fw-light">
+							@Html.DisplayFor(modelItem => r!.FullName)
+							@* (@Model.Count(m => m.ReportedBy!.Id == r.Id)) *@
+						</option>
+					}
+				</select>
+			</div>
+			<div class="col">
+				<select id="statusFilter" class="fw-light filter pt-2 pb-2">
+					<option value="">@Html.DisplayNameFor(model => model.Status)</option>
+					@foreach (var s in Model.Select(m => m.Status).Distinct())
+					{
+						<option value="@s" class="fw-light">
+							@Dictionaries.TicketStatus[s]
+							@* (@Model.Count(m => m.Status == s)) *@
+						</option>
+					}
+				</select>
+				@* <div class="">
+                (@Html.DisplayNameFor(model => model.Priority))
+            </div> *@
+			</div>
+			<div class="col pt-2 pb-2">
+				@Html.DisplayNameFor(model => model.Timestamp)
+			</div>
+			<div class="col pt-2 pb-2">
+				Hozzárendelve
+			</div>
+			@*<div class="col-1">
+                @Html.DisplayNameFor(model => model.Supplier)
+            </div> *@
+			<div class="col pt-2 pb-2">
+				@Html.DisplayNameFor(model => model.Description)
+			</div>
+		</div>
+	}
+	else
+	{
+		<h4 class="mt-4">Itt fognak megjelenni a leadott jegyek.</h4>
+	}
+
+}
+
+@foreach (var item in Model)
+{
+	<div class="row tickets text-break p-3 border border-start @item.GetListItemStyle()" data-categorization="@item.Categorization" data-reportedby="@item.ReportedBy!.Id" data-status="@item.Status">@* services *@
+		<div class="col">
+			<a asp-controller="@Helper.GetController(item.Categorization!)" asp-action="Details" asp-route-id="@item.Id">@item.ReferenceId()</a>
+		</div>
+		<div class="col">
+			@* @Html.DisplayFor(modelItem => item.Categorization) *@
+			@Helper.FormatCategoryShort(item.Categorization!)
+		</div>
+		<div class="col">
+			@Html.DisplayFor(modelItem => item.ReportedBy!.FullName)
+		</div>
+		<div class="col">
+			<div class="@item.GetStatusStyle()">
+				@Dictionaries.TicketStatus[item.Status]
+			</div>
+			@if (item.IsImportant() && !item.IsClosed())
+			{
+				<div class="col @item.GetPriorityStyle()">
+					@Dictionaries.TicketPriority[item.Priority]
+				</div>
+			}
+		</div>
+		<div class="col">
+			@Html.DisplayFor(modelItem => item.Timestamp)
+		</div>
+		@* <div class="col">
+			@Html.DisplayFor(modelItem => item.AssignedToOperator)
+		</div> *@
+		<div class="col">
+			@if (item.AssignedToOperator != null)
+				@item.AssignedToOperator.FullName
+			else
+			{
+				<form asp-controller="Tickets" asp-action="AssignToOperator" asp-route-id="@item.Id" class="d-inline" id="assignToOperator">
+					<input type="hidden" name="userName" value="@User.Identity?.Name" />
+					<button type="submit" class="@Styles.PrimaryButton btn-sm align-self-center ms-2 d-flex text-nowrap" value="Assign">
+						Magamhoz veszem
+					</button>
+				</form>
+			}
+			@* else if (item.AssignedToGroup != null) @item.AssignedToGroup.Name
+            else @("Nincs kiosztva") *@
+		</div>
+		@*<div class="col-1">
+            @Html.DisplayFor(modelItem => item.Supplier)
+        </div> *@
+		<div class="col">
+			@Html.DisplayFor(modelItem => item.Description)
+		</div>
+		@* <hr class="mt-3" /> *@
+	</div>
+}
+
+@section Scripts {
+
+	@* Script for Filtering tickets (Reported by, Category, Status) *@
+	<script type="text/javascript">
+		document.addEventListener("DOMContentLoaded", function () {
+
+		const reportedByFilter = document.getElementById("reportedByFilter");
+		const statusFilter = document.getElementById("statusFilter");
+		const categorizationFilter = document.getElementById("categorizationFilter");
+
+		const tickets = document.querySelectorAll(".tickets");
+
+		function applyFilters() {
+			const reportedBy = reportedByFilter.value;
+			const status = statusFilter.value;
+			const categorization = categorizationFilter.value;
+
+			tickets.forEach(ticket => {
+				const ticketReportedBy = ticket.dataset.reportedby;
+				const ticketStatus = ticket.dataset.status;
+				const ticketCategorization = ticket.dataset.categorization;
+
+				const match =
+					(reportedBy === "" || ticketReportedBy === reportedBy) &&
+					(status === "" || ticketStatus === status) &&
+					(categorization === "" || ticketCategorization === categorization);
+
+				ticket.style.display = match ? "" : "none";
+
+				});
+			}
+
+		reportedByFilter.addEventListener("change", applyFilters);
+		statusFilter.addEventListener("change", applyFilters);
+		categorizationFilter.addEventListener("change", applyFilters);
+		});
+	</script>
+}
+
+
+
+
+@*     <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Timestamp)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Priority)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedBy!.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Categorization)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AssignedToOperator  != null ? item.AssignedToOperator.Id : 0)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AssignedToGroup != null ? item.AssignedToGroup.Id : 0)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Supplier != null ? item.Supplier.Id : 0)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody> *@
+

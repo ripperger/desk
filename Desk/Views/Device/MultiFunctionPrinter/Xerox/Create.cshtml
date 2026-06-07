@@ -1,0 +1,130 @@
+﻿@using Desk.Constants
+
+@inject Desk.Contracts.Services.IUserService UserService
+
+@model Desk.Models.Device.MultiFunctionPrinter.XeroxViewModel
+
+@{
+
+    ViewData["Title"] = "Új Jegy";
+
+    string leftColumnStyle = "col-4 fw-lighter ";
+    string rightColumnStyle = "col-8";
+    string rowStyle = "form-group row mb-3";
+
+    string warning = "Kötelező kitölteni.";
+}
+
+<div class="row">
+    <div class="col-8">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @if (UserService.IsDevUser(User.Identity?.Name) || User.IsInRole(Dictionaries.Role["ADMIN_ROLE"]))
+            {
+                <div class="@rowStyle">
+                    <div class="@leftColumnStyle">
+                        <label asp-for="Ticket!.ReportedById" class="control-label"></label>
+                    </div>
+                    <div class="@rightColumnStyle">
+                        <select asp-for="Ticket!.ReportedById" class="form-select w-50" asp-items="ViewBag.Users"></select>
+                    </div>
+                </div>
+            }
+
+            <div class="@rowStyle">
+                <div class="@leftColumnStyle">
+                    @Html.DisplayNameFor(model => model.Ticket!.Priority)
+                </div>
+                <div class="@rightColumnStyle">
+                    @foreach (var item in Dictionaries.TicketPriority)
+                    {
+                        <input type="radio" class="btn-check btn-primary" name="Ticket.Priority" id="@item.Key" value="@item.Key" autocomplete="off" @(item.Key == Dictionaries.TicketPriority.Keys.First() ? "checked" : "")>
+                        <label class="btn" for="@item.Key">@item.Value</label>
+                    }
+                </div>
+            </div>
+            
+            <div class="@rowStyle">
+                <div class="@leftColumnStyle">
+                    @Html.DisplayNameFor(model => model.SpecialProperties!.RequestType)
+                </div>
+                <div class="@rightColumnStyle">
+                    @foreach (var item in Dictionaries.PrinterRequestType)
+                    {
+                        <input type="radio" class="btn-check btn-primary" name="Xerox.RequestType" id="@item.Key" value="@item.Key" autocomplete="off" @(item.Key == Dictionaries.PrinterRequestType.Keys.First() ? "checked" : "")>
+                        <label class="btn" for="@item.Key">@item.Value</label>
+                    }
+                </div>
+            </div>
+            <div class="@rowStyle">
+                <div class="@leftColumnStyle">
+                    <label asp-for="SpecialProperties!.DeviceId" class="control-label"></label>
+                </div>
+                <div class="@rightColumnStyle">
+                    <input asp-for="SpecialProperties!.DeviceId" class="form-control w-50" />
+                    <span asp-validation-for="SpecialProperties!.DeviceId" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="@rowStyle">
+                <div class="@leftColumnStyle">
+                    <label asp-for="SpecialProperties!.Address" class="control-label"></label>
+                </div>
+                <div class="@rightColumnStyle">
+                    @* <input asp-for="Xerox!.Address" class="form-control" />
+                    <span asp-validation-for="Xerox!.Address" class="text-danger" autocomplete="on"></span> *@
+                    <input class="form-control" type="text" data-val="true" data-val-required="@warning" id="Xerox_Address" name="Xerox.Address" value="" />
+                    <span class="text-danger field-validation-valid" autocomplete="on" data-valmsg-for="Xerox.Address" data-valmsg-replace="true"></span>
+                </div>
+            </div>
+            <div class="@rowStyle">
+                <div class="@leftColumnStyle">
+                    <label asp-for="SpecialProperties!.BlackCount" class="control-label"></label>
+                </div>
+                <div class="@rightColumnStyle">
+                    <input asp-for="SpecialProperties!.BlackCount" class="form-control w-50" />
+                    <span asp-validation-for="SpecialProperties!.BlackCount" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="@rowStyle">
+                <div class="@leftColumnStyle">
+                    <label asp-for="SpecialProperties!.ColorCount" class="control-label"></label>
+                </div>
+                <div class="@rightColumnStyle">
+                    <input asp-for="SpecialProperties!.ColorCount" class="form-control w-50" />
+                    <span asp-validation-for="SpecialProperties!.ColorCount" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="@rowStyle">
+                <div class="@leftColumnStyle">
+                    <label asp-for="Ticket!.Description" class="control-label">Megjegyzés</label>
+                </div>
+                <div class="@rightColumnStyle">
+                    <input asp-for="Ticket!.Description" class="form-control" />
+                    <span asp-validation-for="Ticket!.Description" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="@leftColumnStyle">
+                    <div class="form-group">
+                        <input type="submit" value="Létrehoz" class="btn btn-primary me-2"> |
+                        <a asp-controller="Tickets" asp-action="Index" class="ms-2"> Vissza a listához</a>
+                    </div>
+                </div>
+                <div class="@rightColumnStyle">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* <div>
+    <input type="submit" value="Create" class="btn btn-primary" />
+    <a asp-controller="Tickets" asp-action="Index">Back to List</a>
+</div> *@
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

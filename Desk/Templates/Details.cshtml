@@ -1,0 +1,136 @@
+﻿@using Desk.Constants
+
+@model Desk.Models.TestCategoryA.TestSpecPropsAAViewModel
+
+@{
+    ViewData["Title"] = "Jegy részletei";
+
+    string boxDesign = "mb-4 p-2 border border-start bg-light";
+}
+
+<div>
+    <div>
+        <span class="fw-bold">@Model.Ticket!.ReferenceId()</span>
+        <span class="ms-4 me-4">
+            @Helper.FormatCategory(Model.Ticket!.Categorization!)
+        </span>
+        <a asp-action="Edit" asp-route-id="@Model.Ticket!.Id">Szerkesztés</a> |
+        <a asp-controller="Tickets" asp-action="Index">Vissza a listához</a>
+    </div>
+
+    <hr />
+
+    <div class="">
+        <div class="row">
+            <div class="col-5">
+
+                @* User (Created by) details *@
+                @if (Model.Ticket!.CreatedById != Model.Ticket!.ReportedById)
+                {
+                    <div class="@boxDesign">
+                        <div class="fw-lighter">
+                            @Html.DisplayNameFor(model => model.Ticket!.CreatedBy)
+                        </div>
+                        <div>
+                            @Html.DisplayFor(model => model.Ticket!.CreatedBy!.FullName)
+                            (@Html.DisplayFor(model => model.Ticket!.CreatedBy!.UserName))
+                        </div>
+                    </div>
+                }
+
+                @* User (Reported by) details *@
+                <div class="@boxDesign">
+                    <div class="fw-lighter">
+                        @Html.DisplayNameFor(model => model.Ticket!.ReportedBy)
+                    </div>
+                    <div>
+                        @Html.DisplayFor(model => model.Ticket!.ReportedBy!.FullName)
+                        (@Html.DisplayFor(model => model.Ticket!.ReportedBy!.UserName))
+                    </div>
+                    <div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Department)</div>
+                    <div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Phone)</div>
+                    <div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Email)</div>
+                </div>
+
+                @* Device details *@
+                <div class="@boxDesign">
+                    <div class="fw-lighter">
+                        Eszköz
+                    </div>
+
+                    @* Special properties *@
+                    <div class="row">
+                        <div class="col-7">
+                            <div>@Html.DisplayNameFor(model => model.TestSpecPropsAA!.SpecInt):</div>
+                        </div>
+                        <div class="col-5">
+                            <div>@Html.DisplayFor(model => model.TestSpecPropsAA!.SpecInt)</div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Ticket details *@
+                <div class="@boxDesign">
+                    <div class="fw-lighter">
+                        Jegyadatok
+                    </div>
+
+                    @* Timestamp *@
+                    <div class="row">
+                        <div class="col-7">
+                            <div>@Html.DisplayNameFor(model => model.Ticket!.Timestamp):</div>
+                        </div>
+                        <div class="col-5">
+                            <div>@Html.DisplayFor(model => model.Ticket!.Timestamp)</div>
+                        </div>
+                    </div>
+
+                    @* Status *@
+                    <div class="row">
+                        <div class="col-7">
+                            <div>@Html.DisplayNameFor(model => model.Ticket!.Status):</div>
+                        </div>
+                        <div class="col-5 @Model.Ticket.GetStatusStyle()">
+                            <div>@Dictionaries.TicketStatus[Model.Ticket!.Status]</div>
+                        </div>
+                    </div>
+
+                    @* Priority *@
+                    <div class="row">
+                        <div class="col-7">
+                            <div>@Html.DisplayNameFor(model => model.Ticket!.Priority):</div>
+                        </div>
+                        <div class="col-5 @Model.Ticket.GetPriorityStyle()">
+                            <div>@Dictionaries.TicketPriority[Model.Ticket!.Priority]</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-7">
+
+                @* Description *@
+                <div class="@boxDesign">
+                    <div class="fw-lighter">
+                        @Html.DisplayNameFor(model => model.Ticket!.Description):
+                    </div>
+                    <div>@Model.Ticket!.Description</div>
+                </div>
+
+                @* Attachments *@
+                <div class="@boxDesign">
+                    <div class="fw-lighter">
+                        Mellékletek:
+                    </div>
+                </div>
+
+                @* Comments and Events *@
+                <div class="@boxDesign">
+                    <div class="fw-lighter">
+                        Hozzászólások és Események:
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

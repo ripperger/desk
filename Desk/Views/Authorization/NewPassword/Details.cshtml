@@ -1,0 +1,38 @@
+﻿@using Desk.Constants
+
+@inject Desk.Contracts.Services.IUserService UserService
+
+@model Desk.Models.Authorization.NewPasswordViewModel
+
+@{
+	Layout = "~/Views/Shared/_DetailsLayout.cshtml";
+}
+
+@* Special Property - Authorization details *@
+@section SpecialProperty {
+	<div class="@Styles.DetailsBox">
+		<div class="@Styles.DetailsBoxTitle">
+			Jogosultság
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.ServiceType):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn">
+				<div>@Dictionaries.PasswordServiceType[Model.SpecialProperties!.ServiceType!]</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.Users):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn">
+				@foreach (var username in Model.SpecialProperties.Users)
+				{
+					<div>@username</div>
+				}
+			</div>
+		</div>
+	</div>
+
+}

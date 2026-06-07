@@ -1,0 +1,164 @@
+﻿@using Desk.Constants
+
+@inject Desk.Contracts.Services.IUserService UserService
+
+@model IEnumerable<Desk.Models.Ticket>
+
+@{
+
+	ViewData["Title"] = "Riportok";
+
+	// // The page reloads automatically after 10 minutes
+	// <meta http-equiv="refresh" content="600">
+
+	// string ticketDesign = "";
+}
+
+
+
+@section Sidebar {
+	<div class="">
+	</div>
+
+}
+
+@section Header {
+	@if (Model.Count() > 0)
+	{
+		<div class="fw-light ps-3 pe-3 pt-1 pb-1 row text-wrap border border-start">@* border-bottom border-2 *@
+			<div class="col">
+				<label class="form-label">@Html.DisplayNameFor(model => model.Categorization)</label> 
+				<select id="categorizationFilter" class="form-select fw-light pt-2 pb-2" multiple size="@(Model.Select(m => m.Categorization).Distinct().Count() + 1)">
+					<option value="" selected>Mind</option>
+					@foreach (var c in Model.Select(m => m.Categorization).Distinct())
+					{
+						<option value="@c" class="fw-light">
+							@Helper.FormatCategoryShort(c!)
+							(@Model.Count(m => m.Categorization == c))
+						</option>
+					}
+				</select>
+			</div>
+			<div class="col">
+				<label class="form-label">@Html.DisplayNameFor(model => model.ReportedBy)</label>
+				<select id="reportedByFilter" class="form-select fw-light pt-2 pb-2" size="@(Model.Select(m => m.ReportedBy).Distinct().Count() + 1)" multiple>
+					<option value="" selected>Mind</option>
+					@foreach (var r in Model.Select(m => m.ReportedBy).Distinct())
+					{
+						<option value="@r!.Id" class="fw-light">
+							@Html.DisplayFor(modelItem => r!.FullName)
+							(@Model.Count(m => m.ReportedBy!.Id == r!.Id))
+						</option>
+					}
+				</select>
+			</div>
+			<div class="col">
+				<label class="form-label">@Html.DisplayNameFor(model => model.Status)</label>
+				<select id="statusFilter" class="form-select fw-light pt-2 pb-2" size="@(Model.Select(m => m.Status).Distinct().Count() + 1)" multiple>
+					<option value="" selected>Mind</option>
+					@foreach (var s in Model.Select(m => m.Status).Distinct())
+					{
+						<option value="@s" class="fw-light">
+							@Dictionaries.TicketStatus[s]
+							(@Model.Count(m => m.Status == s))
+						</option>
+					}
+				</select>
+
+			</div>
+			<div class="col pt-2 pb-2">
+				<label class="form-label">@Html.DisplayNameFor(model => model.Priority)</label>
+				<select id="statusFilter" class="form-select fw-light pt-2 pb-2" size="@(Model.Select(m => m.Priority).Distinct().Count() + 1)" multiple>
+					<option value="" selected>Mind</option>
+					@foreach (var p in Model.Select(m => m.Priority).Distinct())
+					{
+						<option value="@p" class="fw-light">
+							@Dictionaries.TicketPriority[p]
+							(@Model.Count(m => m.Priority == p))
+						</option>
+					}
+				</select>
+			</div>
+			<div class="col pt-2 pb-2">
+				@Html.DisplayNameFor(model => model.Timestamp)
+			</div>
+			<div class="col pt-2 pb-2">
+				<label class="form-label">Hozzárendelve</label>
+				<select id="statusFilter" class="form-select fw-light pt-2 pb-2" size="@(Model.Select(m => m.AssignedToGroup).Distinct().Count() + 1)" multiple>
+					<option value="" selected>Mind</option>
+					@foreach (var a in Model.Select(m => m.AssignedToGroup).Distinct())
+					{
+						<option value="@a" class="fw-light">
+							@Html.DisplayFor(modelItem => a!.Name)
+							(@Model.Count(m => m.AssignedToGroup == a))
+						</option>
+					}
+				</select>
+			</div>
+			<div class="col pt-2 pb-2">
+				<label class="form-label">@Html.DisplayNameFor(model => model.Supplier)</label>
+				<select id="statusFilter" class="form-select fw-light pt-2 pb-2" size="@(Model.Select(m => m.Supplier).Distinct().Count() + 1)" multiple>
+					<option value="" selected>Mind</option>
+					@foreach (var s in Model.Select(m => m.Supplier).Distinct())
+					{
+						<option value="@s" class="fw-light">
+							@Html.DisplayFor(modelItem => s!.Name)
+							(@Model.Count(m => m.Supplier == s))
+						</option>
+					}
+				</select>
+				
+			</div>
+		</div>
+		<div class="ps-4 pt-4">
+			Összesen: <span id="reportSum" class="fw-semibold">@Model.Count()</span> db jegy
+		</div>
+	}
+
+
+}
+
+
+@section Scripts {
+
+	@* Script for Filtering tickets (Reported by, Category, Status) *@
+	<script type="text/javascript">
+		document.addEventListener("DOMContentLoaded", function () {
+
+		const reportedByFilter = document.getElementById("reportedByFilter");
+		const statusFilter = document.getElementById("statusFilter");
+		const categorizationFilter = document.getElementById("categorizationFilter");
+		const reportSum = document.getElementById("reportSum");
+
+		const tickets = document.querySelectorAll(".tickets");
+
+		function applyFilters() {
+			const reportedBy = reportedByFilter.value;
+			const status = statusFilter.value;
+			const categorization = categorizationFilter.value;
+			reportSum = 0;
+
+			tickets.forEach(ticket => {
+				const ticketReportedBy = ticket.dataset.reportedby;
+				const ticketStatus = ticket.dataset.status;
+				const ticketCategorization = ticket.dataset.categorization;
+
+				const match =
+					(reportedBy === "" || ticketReportedBy === reportedBy) &&
+					(status === "" || ticketStatus === status) &&
+					(categorization === "" || ticketCategorization === categorization);
+
+				ticket.style.display = match ? "" : "none";
+				if (match) reportSum++;
+				});
+			}
+
+		reportedByFilter.addEventListener("change", applyFilters);
+		statusFilter.addEventListener("change", applyFilters);
+		categorizationFilter.addEventListener("change", applyFilters);
+		});
+	</script>
+}
+
+
+

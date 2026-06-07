@@ -1,0 +1,12 @@
+﻿@model Desk.Models.User
+
+@{
+    ViewBag.Title = "Data Import";
+}
+
+<h4>AD Users (CSV)</h4>
+@using (Html.BeginForm("ImportCsv", "Csv", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <input type="file" name="file" />
+    <input type="submit" value="Upload" />
+}

@@ -1,0 +1,97 @@
+﻿@model IEnumerable<Desk.Models.User>
+
+@{
+    ViewData["Title"] = "Felhasználók";
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Sid)
+            </th>
+            @* <th>
+                @Html.DisplayNameFor(model => model.IsDeleted)
+            </th> *@
+            <th>
+                @Html.DisplayNameFor(model => model.UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FullName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Phone)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Department)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsVip)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UserGroups)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LastLogin)
+            </th>
+            <th>
+                <a asp-action="Create" class="btn btn-primary">Új User</a>
+            </th>
+        </tr>
+    </thead>
+    <tbody class="text-break">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @item.FormatSid()
+                </td>
+                @* <td>
+                    @Html.DisplayFor(modelItem => item.IsDeleted)
+                </td> *@
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FullName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Phone)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Department)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsVip)
+                </td>
+                <td>
+                    @foreach (var userGroup in item.UserGroups)
+                    {
+                        if (userGroup.Group != null)
+                        @Html.DisplayFor(modelItem => userGroup.Group.Name)
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LastLogin)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,74 @@
+﻿@using Desk.Constants
+
+@inject Desk.Contracts.Services.IUserService UserService
+
+@model Desk.Models.Device.MultiFunctionPrinter.KonicaMinoltaViewModel
+
+@{
+	Layout = "~/Views/Shared/_DetailsLayout.cshtml";
+}
+
+@* Special Property - Device details *@
+@section SpecialProperty {
+	<div class="@Styles.DetailsBox">
+		<div class="@Styles.DetailsBoxTitle">
+			Eszköz
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn ">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.RequestType):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn">
+				<div>@Dictionaries.PrinterRequestType[Model.SpecialProperties!.RequestType!]</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn ">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.IsPreventiveMaintenance):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn @(Model.SpecialProperties.IsPreventiveMaintenance ? "fw-medium" : "")">
+				<div>@(Model.SpecialProperties.IsPreventiveMaintenance ? "IGEN" : "Nem")</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn ">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.DeviceId):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn">
+				<div>@Html.DisplayFor(model => model.SpecialProperties!.DeviceId)</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn ">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.Address):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn">
+				<div>@Html.DisplayFor(model => model.SpecialProperties!.Address)</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn ">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.BlackCount):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn">
+				<div>@Html.DisplayFor(model => model.SpecialProperties!.BlackCount)</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn ">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.ColorCount):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn">
+				<div>@Html.DisplayFor(model => model.SpecialProperties!.ColorCount)</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="@Styles.DetailsBoxLeftColumn">
+				<div>@Html.DisplayNameFor(model => model.SpecialProperties!.ScannedCount):</div>
+			</div>
+			<div class="@Styles.DetailsBoxRightColumn">
+				<div>@Html.DisplayFor(model => model.SpecialProperties!.ScannedCount)</div>
+			</div>
+		</div>
+	</div>
+}

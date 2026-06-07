@@ -1,0 +1,267 @@
+﻿@using Desk.Constants
+
+@inject Desk.Contracts.Services.IUserService UserService
+
+@model Desk.Models.Device.MultiFunctionPrinter.XeroxViewModel
+
+@{
+
+    ViewData["Title"] = "Jegy részletei";
+
+    string design = "mb-4 p-2 border border-start bg-light";
+
+    bool isAssignedTo = User.IsInRole(Dictionaries.Role["ADMIN_ROLE"]) || UserService.IsDevUser(UserService.LoggedInUserName(User));
+    bool isReportedBy = Model.Ticket!.ReportedBy == UserService.GetUserByUserNameAsync(UserService.LoggedInUserName(User)).Result;
+
+    string isChecked = Model.Ticket!.IsClosed() ? "checked" : "";
+}
+
+<div>
+    <div class="">
+        <span class="fw-bold">@Model.Ticket!.ReferenceId()</span>
+        <span class="ms-4 me-4">
+            @Helper.FormatCategory(Model.Ticket!.Categorization!)
+        </span>
+
+        <span class="">
+            @{
+                if (isAssignedTo)
+                {
+                    <button type="button" onclick="document.getElementsByTagName('form')[0].submit();" class="btn btn-primary me-2">Mentés</button>
+                    <span>|</span>
+                }
+                else if (isReportedBy)
+                {
+                    <button type="button" onclick="document.getElementsByTagName('form')[0].submit();" class="btn btn-primary me-2">@(Model.Ticket!.IsClosed() ? "Visszanyitom" : "Lezárom")</button>
+                    <span>|</span>
+                }
+            }
+
+            <a asp-controller="Tickets" asp-action="Index" class="ms-2"> Vissza a listához</a>
+        </span>
+    </div>
+
+    <div class="mt-3">
+        <div class="row">
+            <div class="col-5">
+
+                @* Ticket details *@
+                <div class="@design">
+                    <div class="fw-lighter text-uppercase">
+                        Jegyadatok
+                    </div>
+                    @if (Model.Ticket!.CreatedById != Model.Ticket!.ReportedById)
+                    {
+                        <div class="row">
+                            <div class="col-7 fw-lighter ">
+                                @Html.DisplayNameFor(model => model.Ticket!.CreatedBy):
+                            </div>
+                            <div class="col-5 text-break">
+                                @Html.DisplayFor(model => model.Ticket!.CreatedBy!.FullName)
+                                (@Html.DisplayFor(model => model.Ticket!.CreatedBy!.UserName))
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-7 fw-lighter ">
+                            <div>@Html.DisplayNameFor(model => model.Ticket!.Timestamp):</div>
+                        </div>
+                        <div class="col-5">
+                            <div>@Html.DisplayFor(model => model.Ticket!.Timestamp)</div>
+                        </div>
+                    </div>
+                    @if (!Model.Ticket!.IsClosed())
+                    {
+                        <div class="row">
+                            <div class="col-7 fw-lighter ">
+                                <div>@Html.DisplayNameFor(model => model.Ticket!.Priority):</div>
+                            </div>
+                            <div class="col-5 @Model.Ticket.GetPriorityStyle()">
+                                <div>@Dictionaries.TicketPriority[Model.Ticket!.Priority]</div>
+                            </div>
+                        </div>
+
+                    }
+                    else if (Model.Ticket!.ResolvedAt != null)
+                    {
+                        <div class="row">
+                            <div class="col-7 fw-lighter ">
+                                <div>@Html.DisplayNameFor(model => model.Ticket!.ResolvedAt):</div>
+                            </div>
+                            <div class="col-5">
+                                <div>@Html.DisplayFor(model => model.Ticket!.ResolvedAt)</div>
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-7 fw-lighter ">
+                            <div>@Html.DisplayNameFor(model => model.Ticket!.Status):</div>
+                        </div>
+                        <div class="col-5 @Model.Ticket.GetStatusStyle()">
+                            <div>@Dictionaries.TicketStatus[Model.Ticket!.Status]</div>
+                        </div>
+                    </div>
+                    @if (Model.Ticket!.SupplierId != null)
+                    {
+                        <div class="row">
+                            <div class="col-7 fw-lighter ">
+                                <div>@Html.DisplayNameFor(model => model.Ticket!.Supplier):</div>
+                            </div>
+                            <div class="col-5">
+                                <div>@Model.Ticket!.Supplier?.Name</div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+
+                @* User (Reported by) details *@
+                <div class="@design">
+                    <div class="fw-lighter text-uppercase">
+                        @Html.DisplayNameFor(model => model.Ticket!.ReportedBy)
+                    </div>
+                    <div>
+                        @Html.DisplayFor(model => model.Ticket!.ReportedBy!.FullName)
+                        (@Html.DisplayFor(model => model.Ticket!.ReportedBy!.UserName))
+                    </div>
+                    <div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Department)</div>
+                    <div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Phone)</div>
+                    <div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Email)</div>
+                </div>
+                @*                 <hr /> *@
+
+                @* Device details *@
+                <div class="@design">
+                    <div class="fw-lighter text-uppercase">
+                        Eszköz
+                    </div>
+                    <div class="row">
+                        <div class="col-7 fw-lighter ">
+                            <div>@Html.DisplayNameFor(model => model.SpecialProperties!.RequestType):</div>
+                        </div>
+                        <div class="col-5">
+                            <div>@Dictionaries.PrinterRequestType[Model.SpecialProperties!.RequestType!]</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-7 fw-lighter ">
+                            <div>@Html.DisplayNameFor(model => model.SpecialProperties!.DeviceId):</div>
+                        </div>
+                        <div class="col-5">
+                            <div>@Html.DisplayFor(model => model.SpecialProperties!.DeviceId)</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-7 fw-lighter ">
+                            <div>@Html.DisplayNameFor(model => model.SpecialProperties!.Address):</div>
+                        </div>
+                        <div class="col-5">
+                            <div>@Html.DisplayFor(model => model.SpecialProperties!.Address)</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-7 fw-lighter ">
+                            <div>@Html.DisplayNameFor(model => model.SpecialProperties!.BlackCount):</div>
+                        </div>
+                        <div class="col-5">
+                            <div>@Html.DisplayFor(model => model.SpecialProperties!.BlackCount)</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-7 fw-lighter ">
+                            <div>@Html.DisplayNameFor(model => model.SpecialProperties!.ColorCount):</div>
+                        </div>
+                        <div class="col-5">
+                            <div>@Html.DisplayFor(model => model.SpecialProperties!.ColorCount)</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-7">
+
+                @* Actions *@
+                <form asp-controller="Tickets" asp-action="UpdateStatus" asp-route-id="@Model.Ticket!.Id" class="d-inline">
+                    <input type="hidden" asp-for="Ticket!.Id" value="@Model.Ticket!.Id" />
+                    @if (isAssignedTo)
+                    {
+                        <div class="@design">
+                            <div class="fw-lighter text-uppercase">
+                                Műveletek
+                            </div>
+                            <div class="form-group m-2">
+                                <div class="row">
+                                    <div class="col-auto">
+                                        <select asp-for="Ticket!.Status" class="form-select w-auto @Model.Ticket.GetStatusStyle()" id="actionSelect" asp-items="ViewBag.Statuses" onclick="getActionExtra(event)"></select>
+                                    </div>
+                                    <div class="col">
+                                        <div class="action-extra" id="RESOLVED" style="display: none;">
+                                            Befejezés időpontja:
+                                            <input asp-for="Ticket!.ResolvedAt" class="form-control w-auto d-inline" />
+                                        </div>
+                                        <div class="action-extra" id="REJECTED" style="display: none;">
+                                            Elutasítás oka:
+                                            <input type="text" name="rejectReason" class="form-control w-50 d-inline" />
+                                        </div>
+                                        <div class="action-extra" id="ASSIGNED_TO_SUPPLIER" style="display: none;">
+                                            Beszállító:
+                                            <select asp-for="Ticket!.SupplierId" class="form-select w-50 d-inline" asp-items="ViewBag.Suppliers"></select>
+                                        </div>
+                                        <div class="action-extra" id="REOPENED" style="display: none;">
+                                            Visszanyitás oka:
+                                            <input type="text" name="reopenReason" class="form-control w-50 d-inline" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="Ticket!.Status" value="@(Model.Ticket!.IsClosed() ? "REOPENED" : "CLOSED_BY_USER")" />
+
+                    }
+                </form>
+
+                @* Description *@
+                <div class="@design">
+                    <div class="fw-lighter text-uppercase">
+                        @Html.DisplayNameFor(model => model.Ticket!.Description)
+                    </div>
+                    <div>@Model.Ticket!.Description</div>
+                </div>
+
+                @* Attachments *@
+                <div class="@design">
+                    <div class="fw-lighter text-uppercase">
+                        Mellékletek
+                    </div>
+                </div>
+
+                @* Comments and Events *@
+                <div class="@design">
+                    <div class="fw-lighter text-uppercase">
+                        Hozzászólások és Események
+                    </div>
+                    @if (Model.Ticket!.Events != null)
+                    {
+                        foreach (var ticketEvent in Model.Ticket!.Events)
+                        {
+                            <div class="m-2">
+                                @Dictionaries.EventType[ticketEvent.Type] - @ticketEvent.Description
+                                <div class="fw-lighter"><span class="text-capitalize">@ticketEvent.Timestamp.ToString("MMM d. HH:mm"), </span> @ticketEvent.User?.FullName</div>
+                            </div>
+                        }
+                    }
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,46 @@
+﻿@using Desk.Constants
+
+@inject Desk.Contracts.Services.IUserService UserService
+
+@model Desk.Models.Authorization.NewPasswordViewModel
+
+@{
+	Layout = "~/Views/Shared/_CreateLayout.cshtml";
+}
+
+@section SpecialProperty
+{
+	@* Service Type *@
+	<div class="@Styles.CreateRow">
+		<div class="@Styles.CreateLeftColumn">
+			@Html.DisplayNameFor(model => model.SpecialProperties!.ServiceType)
+		</div>
+		<div class="@Styles.CreateRightColumn">
+
+			<select asp-for="SpecialProperties!.ServiceType" class="form-select w-50" asp-items="Helper.GetSelectList(Dictionaries.PasswordServiceType)">
+			</select>
+		</div>
+	</div>
+
+	@* Users that will get the authorization *@
+	<div class="@Styles.CreateRow">
+		<div class="@Styles.CreateLeftColumn">
+			<label asp-for="SpecialProperties!.Users" class="control-label"></label>
+		</div>
+		<div class="@Styles.CreateRightColumn">
+
+			<span asp-validation-for="SpecialProperties!.Users" class="text-danger"></span>
+			<div id="inputUsersContainer">
+				<input asp-for="SpecialProperties!.Users" class="form-control w-50 mb-1" />
+			</div>
+			<button type="button" onclick="addInputField(this)" class="btn btn-secondary">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-plus-fill me-1" viewBox="0 0 16 16">
+					<path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+					<path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5" />
+				</svg>
+				Több felhasználó hozzáadása
+			</button>
+		</div>
+	</div>
+
+}

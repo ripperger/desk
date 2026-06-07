@@ -1,0 +1,316 @@
+﻿@using Desk.Constants
+
+@inject Desk.Contracts.Services.IUserService UserService
+
+@model Desk.Models.SpecialPropertiesViewModel
+
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	ViewData["Title"] = "Jegy részletei";
+
+	bool isAssignedTo = User.IsInRole(Dictionaries.Role["ADMIN_ROLE"]) || UserService.IsDevUser(UserService.LoggedInUserName(User));
+	bool isReportedBy = Model.Ticket!.ReportedBy == UserService.GetUserByUserNameAsync(UserService.LoggedInUserName(User)).Result;
+
+	string isChecked = Model.Ticket.IsClosed() ? "checked" : "";
+
+	var contents = Model.Ticket.Events.Cast<Content>().Concat(Model.Ticket.Comments.Cast<Content>())
+								.OrderByDescending(c => c.Timestamp);
+
+}
+
+<div>
+	<div class="row">
+		<div class="col-5 pt-1">
+			<span class="fw-bold">@Model.Ticket!.ReferenceId()</span>
+			<span class="ms-4 me-4">
+				@Helper.FormatCategory(Model.Ticket!.Categorization!)
+			</span>
+		</div>
+
+		<div class="col-7">
+			@{
+				if (isAssignedTo)
+				{
+					<button type="button" onclick="document.getElementById('updateStatus').submit();" class="@Styles.PrimaryButton">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy2-fill me-1" viewBox="0 0 16 16">
+							<path d="M12 2h-2v3h2z" />
+							<path d="M1.5 0A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13a1.5 1.5 0 0 0 1.5-1.5V2.914a1.5 1.5 0 0 0-.44-1.06L14.147.439A1.5 1.5 0 0 0 13.086 0zM4 6a1 1 0 0 1-1-1V1h10v4a1 1 0 0 1-1 1zM3 9h10a1 1 0 0 1 1 1v5H2v-5a1 1 0 0 1 1-1" />
+						</svg>
+						Mentés
+					</button>
+					<span>|</span>
+				}
+				else if (isReportedBy)
+				{
+					<button type="button" onclick="document.getElementById('updateStatus').submit();" class="@Styles.PrimaryButton">@(Model.Ticket!.IsClosed() ? "Visszanyitom" : "Lezárom")</button>
+					<span>|</span>
+				}
+			}
+
+			<a asp-controller="Tickets" asp-action="Index" class="ms-2"> Vissza a listához</a>
+		</div>
+	</div>
+
+	<div class="mt-3">
+		<div class="row">
+			<div class="col-5">
+
+				@* Ticket details *@
+				<div class="@Styles.DetailsBox">
+					<div class="@Styles.DetailsBoxTitle">
+						Jegyadatok
+					</div>
+					@if (Model.Ticket!.CreatedById != Model.Ticket!.ReportedById)
+					{
+						<div class="row">
+							<div class="@Styles.DetailsBoxLeftColumn">
+								@Html.DisplayNameFor(model => model.Ticket!.CreatedBy):
+							</div>
+							<div class="@Styles.DetailsBoxRightColumn text-break">
+								@Html.DisplayFor(model => model.Ticket!.CreatedBy!.FullName)
+								(@Html.DisplayFor(model => model.Ticket!.CreatedBy!.UserName))
+							</div>
+						</div>
+					}
+					<div class="row">
+						<div class="@Styles.DetailsBoxLeftColumn">
+							<div>@Html.DisplayNameFor(model => model.Ticket!.Timestamp):</div>
+						</div>
+						<div class="@Styles.DetailsBoxRightColumn">
+							<div>@Html.DisplayFor(model => model.Ticket!.Timestamp)</div>
+						</div>
+					</div>
+					@if (!Model.Ticket!.IsClosed())
+					{
+						<div class="row">
+							<div class="@Styles.DetailsBoxLeftColumn">
+								<div>@Html.DisplayNameFor(model => model.Ticket!.Priority):</div>
+							</div>
+							<div class="@Styles.DetailsBoxRightColumn @Model.Ticket.GetPriorityStyle()">
+								<div>@Dictionaries.TicketPriority[Model.Ticket!.Priority]</div>
+							</div>
+						</div>
+					}
+					else if (Model.Ticket!.ResolvedAt != null)
+					{
+						<div class="row">
+							<div class="@Styles.DetailsBoxLeftColumn">
+								<div>@Html.DisplayNameFor(model => model.Ticket!.ResolvedAt):</div>
+							</div>
+							<div class="@Styles.DetailsBoxRightColumn">
+								<div>@Html.DisplayFor(model => model.Ticket!.ResolvedAt)</div>
+							</div>
+						</div>
+					}
+					<div class="row">
+						<div class="@Styles.DetailsBoxLeftColumn">
+							<div>@Html.DisplayNameFor(model => model.Ticket!.Status):</div>
+						</div>
+						<div class="@Styles.DetailsBoxRightColumn @Model.Ticket.GetStatusStyle()">
+							<div>@Dictionaries.TicketStatus[Model.Ticket!.Status]</div>
+						</div>
+					</div>
+					@if (Model.Ticket!.AssignedToOperator != null)
+					{
+						<div class="row">
+							<div class="@Styles.DetailsBoxLeftColumn">
+								<div>@Html.DisplayNameFor(model => model.Ticket!.AssignedToOperator):</div>
+							</div>
+							<div class="fw-medium @Styles.DetailsBoxRightColumn">
+								<div>@Model.Ticket!.AssignedToOperator?.FullName</div>
+							</div>
+						</div>
+					}
+					@if (Model.Ticket!.SupplierId != null)
+					{
+						<div class="row">
+							<div class="@Styles.DetailsBoxLeftColumn">
+								<div>@Html.DisplayNameFor(model => model.Ticket!.Supplier):</div>
+							</div>
+							<div class="@Styles.DetailsBoxRightColumn">
+								<div>@Model.Ticket!.Supplier?.Name</div>
+							</div>
+						</div>
+					}
+				</div>
+
+				@* User (Reported by) details *@
+				<div class="@Styles.DetailsBox">
+					<div class="@Styles.DetailsBoxTitle">
+						@Html.DisplayNameFor(model => model.Ticket!.ReportedBy)
+					</div>
+
+					<div id="ReporterContainer" class="accordion ">
+						<div class="accordion-item">
+							<button type="button" id="" class="accordion-button collapsed " data-bs-toggle="collapse" data-bs-target="#reporter" aria-expanded="true" aria-controls="reporter">
+
+								<div class="accordion-header row ">
+									<div class="">
+										<div>
+											@Html.DisplayFor(model => model.Ticket!.ReportedBy!.FullName)
+										</div>
+									</div>
+								</div>
+							</button>
+
+							<div id="reporter" class="accordion-collapse accordion-body collapse" data-bs-parent="#ReporterContainer">
+
+								<div class="row">
+									<div class="@Styles.DetailsBoxLeftColumn">
+										<div>@Html.DisplayNameFor(model => model.Ticket!.ReportedBy!.UserName):</div>
+									</div>
+									<div class="@Styles.DetailsBoxRightColumn">
+										<div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.UserName)</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="@Styles.DetailsBoxLeftColumn">
+										<div>@Html.DisplayNameFor(model => model.Ticket!.ReportedBy!.Department):</div>
+									</div>
+									<div class="@Styles.DetailsBoxRightColumn">
+										<div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Department)</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="@Styles.DetailsBoxLeftColumn">
+										<div>@Html.DisplayNameFor(model => model.Ticket!.ReportedBy!.Phone):</div>
+									</div>
+									<div class="@Styles.DetailsBoxRightColumn">
+										<div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Phone)</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="@Styles.DetailsBoxLeftColumn">
+										<div>@Html.DisplayNameFor(model => model.Ticket!.ReportedBy!.Email):</div>
+									</div>
+									<div class="@Styles.DetailsBoxRightColumn">
+										<div>@Html.DisplayFor(model => model.Ticket!.ReportedBy!.Email)</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				@* Special Property details *@
+				@RenderSection("SpecialProperty", required: false)
+
+			</div>
+
+			<div class="col-7">
+
+				@* Actions *@
+				<form asp-controller="Tickets" asp-action="UpdateStatus" asp-route-id="@Model.Ticket!.Id" class="d-inline" id="updateStatus">
+					<input type="hidden" asp-for="Ticket!.Id" value="@Model.Ticket!.Id" />
+					@if (isAssignedTo)
+					{
+						<div class="@Styles.DetailsBox">
+							<div class="@Styles.DetailsBoxTitle">
+								Műveletek
+							</div>
+							<div class="form-group m-2">
+								<div class="row">
+									<div class="col-auto">
+										<select asp-for="Ticket!.Status" class="form-select w-auto @Model.Ticket.GetStatusStyle()" id="actionSelect" asp-items="ViewBag.Statuses" onclick="getActionExtra(event)"></select>
+									</div>
+									<div class="col">
+										<div class="action-extra" id="RESOLVED" style="display: none;">
+											Befejezés időpontja:
+											<input asp-for="Ticket!.ResolvedAt" class="form-control w-auto d-inline" />
+										</div>
+										<div class="action-extra" id="REJECTED" style="display: none;">
+											Elutasítás oka:
+											<input type="text" name="rejectReason" class="form-control w-50 d-inline" />
+										</div>
+										<div class="action-extra" id="ASSIGNED_TO_SUPPLIER" style="display: none;">
+											Beszállító:
+											<select asp-for="Ticket!.SupplierId" class="form-select w-50 d-inline" asp-items="ViewBag.Suppliers"></select>
+										</div>
+										<div class="action-extra" id="REOPENED" style="display: none;">
+											Visszanyitás oka:
+											<input type="text" name="reopenReason" class="form-control w-50 d-inline" />
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					}
+					else
+					{
+						<input type="hidden" asp-for="Ticket!.Status" value="@(Model.Ticket!.IsClosed() ? "REOPENED" : "CLOSED_BY_USER")" />
+					}
+				</form>
+
+				@* Description *@
+				<div class="@Styles.DetailsBox">
+					<div class="@Styles.DetailsBoxTitle">
+						@Html.DisplayNameFor(model => model.Ticket!.Description)
+					</div>
+					<div>@Model.Ticket!.Description</div>
+				</div>
+
+				@* Attachments *@
+				<div class="@Styles.DetailsBox">
+					<div class="@Styles.DetailsBoxTitle">
+						Mellékletek
+					</div>
+				</div>
+
+				@* Comments and Events *@
+				<div class="@Styles.DetailsBox">
+					<div class="@Styles.DetailsBoxTitle">
+						Hozzászólások és Események
+					</div>
+
+					@* Comment textarea *@
+					<form asp-controller="Tickets" asp-action="AddComment" asp-route-id="@Model.Ticket!.Id" id="addComment" class="mt-2">
+						<input type="hidden" asp-for="Comment!.TicketId" value="@Model.Ticket!.Id" />
+						<input type="hidden" asp-for="Ticket!.Id" value="@Model.Ticket!.Id" />
+						<input type="hidden" asp-for="Ticket!.Categorization" value="@Model.Ticket!.Categorization" />
+
+						@if (isAssignedTo)
+						{
+							<div class="form-check">
+								<input asp-for="Comment!.IsVisibleToReporter" class="form-check-input" />
+								<label asp-for="Comment!.IsVisibleToReporter" class="form-check-label"></label>
+							</div>
+						}
+						
+						<div class="d-flex">
+							<textarea asp-for="Comment!.Text" class="form-control" placeholder="Hozzászólok..." rows="2" required></textarea>
+							<span asp-validation-for="Comment!.Text" class="text-danger"></span>
+							<button type="submit" class="@Styles.PrimaryButton btn-sm align-self-center ms-2 d-flex text-nowrap" value="Elküld">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill me-1" viewBox="0 0 16 16">
+									<path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z" />
+								</svg>
+								Küldés
+							</button>
+						</div>
+					</form>
+
+					@* List *@
+					<div class="mt-3">
+						@if (contents != null)
+						{
+							foreach (var content in contents)
+							{
+								<div class="mb-3 p-2 bg-white">
+									<span style="white-space: pre-wrap;">@content.ToString()</span>
+									<div class="fw-lighter"><span class="text-capitalize">@content.Timestamp.ToString("MMM d. HH:mm"), </span> @content.User?.FullName</div>
+								</div>
+							}
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+		@*         <dt class = "col-sm-2">
+    @Html.DisplayNameFor(model => model.AssignedToGroup)
+    </dt>
+    <dd class = "col-sm-10">
+    @Html.DisplayFor(model => model.AssignedToGroup != null ? model.AssignedToGroup.Id : 0)
+    </dd>
+    *@
+	</div>
+</div>
